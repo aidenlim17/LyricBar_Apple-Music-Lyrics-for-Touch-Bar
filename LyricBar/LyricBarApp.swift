@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct LyricBarApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @StateObject private var viewModel = LyricBarViewModel()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(viewModel)
+                .onAppear {
+                    appDelegate.configure(viewModel: viewModel)
+                }
         }
     }
 }
