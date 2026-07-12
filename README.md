@@ -23,6 +23,8 @@ The target keeps Hardened Runtime enabled, disables App Sandbox for Apple Music 
 
 ## Install From DMG
 
+[Download LyricBar-1.0.dmg](https://github.com/aidenlim17/LyricBar/raw/main/dist/LyricBar-1.0.dmg)
+
 Open `LyricBar-1.0.dmg`, then drag `LyricBar.app` onto the `Applications` folder shortcut in the DMG window. Launch LyricBar from `/Applications`.
 
 For unsigned build verification:
