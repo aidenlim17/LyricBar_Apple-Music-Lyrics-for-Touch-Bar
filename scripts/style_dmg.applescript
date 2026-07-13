@@ -37,7 +37,9 @@ on run argv
             update mountedFolder
         end try
         delay 3
-        close dmgWindow
+        try
+            close dmgWindow
+        end try
         delay 2
     end tell
 end run

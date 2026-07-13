@@ -27,6 +27,21 @@ The target keeps Hardened Runtime enabled, disables App Sandbox for Apple Music 
 
 Open `LyricBar-1.0.dmg`, then drag `LyricBar.app` onto the `Applications` folder shortcut in the DMG window. Launch LyricBar from `/Applications`.
 
+## First Launch Warning
+
+This public test build is not signed or notarized with an Apple Developer ID yet. macOS may show a warning such as "cannot be opened because the developer cannot be verified."
+
+To open it:
+
+1. Move `LyricBar.app` to `/Applications`.
+2. Control-click or right-click `LyricBar.app`.
+3. Choose `Open`.
+4. Click `Open` again if macOS asks for confirmation.
+
+If macOS blocks the app completely, open `System Settings > Privacy & Security`, find the LyricBar warning, and choose `Open Anyway`.
+
+LyricBar also needs Apple Music automation permission. When macOS asks whether LyricBar can control Music, choose `Allow`.
+
 For unsigned build verification:
 
 ```sh
