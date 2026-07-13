@@ -32,6 +32,17 @@ final class LyricBarViewModel: ObservableObject {
             UserDefaults.standard.set(isTouchBarLyricsEnabled, forKey: Self.touchBarLyricsEnabledKey)
         }
     }
+    @Published var touchBarFontWeight: TouchBarLyricFontWeight {
+        didSet {
+            UserDefaults.standard.set(touchBarFontWeight.rawValue, forKey: Self.touchBarFontWeightKey)
+        }
+    }
+    @Published var touchBarFontSize: Double {
+        didSet {
+            touchBarFontSize = min(max(touchBarFontSize, Self.touchBarFontSizeRange.lowerBound), Self.touchBarFontSizeRange.upperBound)
+            UserDefaults.standard.set(touchBarFontSize, forKey: Self.touchBarFontSizeKey)
+        }
+    }
 
     private let appleMusicService: AppleMusicService
     private let lrclibService: LRCLIBService
@@ -50,6 +61,9 @@ final class LyricBarViewModel: ObservableObject {
     private var currentLyricSyncOffset: TimeInterval = 0
     private var lyricSyncOffsets: [String: TimeInterval]
     private static let touchBarLyricsEnabledKey = "touchBarLyricsEnabled"
+    private static let touchBarFontWeightKey = "touchBarFontWeight"
+    private static let touchBarFontSizeKey = "touchBarFontSize"
+    private static let touchBarFontSizeRange: ClosedRange<Double> = 14...22
     private static let lyricSyncOffsetsKey = "lyricSyncOffsetsByTrack"
     private static let lyricSyncStep: TimeInterval = 0.2
     private static let lyricSyncOffsetLimit: TimeInterval = 10
@@ -65,6 +79,8 @@ final class LyricBarViewModel: ObservableObject {
         self.netEaseLRCService = netEaseLRCService ?? NetEaseLRCService()
         self.cache = cache ?? LyricsCache()
         self.lyricSyncOffsets = Self.loadLyricSyncOffsets()
+        self.touchBarFontWeight = Self.loadTouchBarFontWeight()
+        self.touchBarFontSize = Self.loadTouchBarFontSize()
         if UserDefaults.standard.object(forKey: Self.touchBarLyricsEnabledKey) == nil {
             self.isTouchBarLyricsEnabled = true
         } else {
@@ -552,6 +568,23 @@ final class LyricBarViewModel: ObservableObject {
                 partialResult[element.key] = number.doubleValue
             }
         }
+    }
+
+    private static func loadTouchBarFontWeight() -> TouchBarLyricFontWeight {
+        guard let rawValue = UserDefaults.standard.string(forKey: touchBarFontWeightKey),
+              let weight = TouchBarLyricFontWeight(rawValue: rawValue) else {
+            return .light
+        }
+        return weight
+    }
+
+    private static func loadTouchBarFontSize() -> Double {
+        guard UserDefaults.standard.object(forKey: touchBarFontSizeKey) != nil else {
+            return 18
+        }
+
+        let size = UserDefaults.standard.double(forKey: touchBarFontSizeKey)
+        return min(max(size, touchBarFontSizeRange.lowerBound), touchBarFontSizeRange.upperBound)
     }
 
     private func selectedTrackDebugText(from result: LyricsResult) -> String {

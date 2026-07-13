@@ -17,7 +17,7 @@ struct ContentView: View {
             footer
         }
         .padding(24)
-        .frame(minWidth: 620, idealWidth: 760, minHeight: 430)
+        .frame(minWidth: 620, idealWidth: 760, minHeight: 470)
         .background(.background)
         .onAppear {
             viewModel.start()
@@ -164,6 +164,31 @@ struct ContentView: View {
                     .toggleStyle(.switch)
                     .controlSize(.small)
             }
+
+            HStack(spacing: 10) {
+                Label("Touch Bar 폰트", systemImage: "textformat.size")
+                    .foregroundStyle(.secondary)
+
+                Picker("굵기", selection: $viewModel.touchBarFontWeight) {
+                    ForEach(TouchBarLyricFontWeight.allCases) { weight in
+                        Text(weight.label).tag(weight)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 118)
+
+                Slider(value: $viewModel.touchBarFontSize, in: 14...22, step: 1)
+                    .frame(width: 130)
+
+                Text("\(Int(viewModel.touchBarFontSize))pt")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 36, alignment: .trailing)
+
+                Spacer()
+            }
+            .font(.caption)
+            .disabled(!viewModel.isTouchBarLyricsEnabled)
 
             if viewModel.showsDebugInfo, !viewModel.selectedLRCLIBText.isEmpty {
                 Text(viewModel.selectedLRCLIBText)

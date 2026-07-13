@@ -81,7 +81,6 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         currentButton.title = "Apple Music 확인 중..."
         currentButton.isBordered = false
         currentButton.alignment = .left
-        currentButton.font = .systemFont(ofSize: 18, weight: .light)
         currentButton.lineBreakMode = .byTruncatingTail
         currentButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         currentButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -102,6 +101,8 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
     }
 
     private func bind(to viewModel: LyricBarViewModel) {
+        applyFont(from: viewModel)
+
         viewModel.$currentLyric
             .combineLatest(viewModel.$statusText, viewModel.$isTouchBarLyricsEnabled)
         .receive(on: RunLoop.main)
@@ -110,9 +111,20 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
             self.update(from: viewModel)
         }
         .store(in: &cancellables)
+
+        viewModel.$touchBarFontWeight
+            .combineLatest(viewModel.$touchBarFontSize)
+            .receive(on: RunLoop.main)
+            .sink { [weak self, weak viewModel] _, _ in
+                guard let self, let viewModel else { return }
+                self.applyFont(from: viewModel)
+            }
+            .store(in: &cancellables)
     }
 
     private func update(from viewModel: LyricBarViewModel) {
+        applyFont(from: viewModel)
+
         guard viewModel.isTouchBarLyricsEnabled else {
             currentButton.title = "Touch Bar 가사 표시 꺼짐"
             return
@@ -136,6 +148,13 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         }
 
         debugLog("현재 가사 갱신: \(viewModel.currentLyric)")
+    }
+
+    private func applyFont(from viewModel: LyricBarViewModel) {
+        currentButton.font = .systemFont(
+            ofSize: CGFloat(viewModel.touchBarFontSize),
+            weight: viewModel.touchBarFontWeight.nsFontWeight
+        )
     }
 
     private func customItem(_ identifier: NSTouchBarItem.Identifier, view: NSView, label: String) -> NSTouchBarItem {
