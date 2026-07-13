@@ -81,7 +81,7 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         currentButton.title = "Apple Music 확인 중..."
         currentButton.isBordered = false
         currentButton.alignment = .left
-        currentButton.font = .systemFont(ofSize: 18, weight: .semibold)
+        currentButton.font = .systemFont(ofSize: 18, weight: .light)
         currentButton.lineBreakMode = .byTruncatingTail
         currentButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         currentButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
