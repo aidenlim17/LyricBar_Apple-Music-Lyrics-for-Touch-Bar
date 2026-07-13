@@ -18,11 +18,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.didBecomeKeyNotification,
             object: nil
         )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(workspaceApplicationDidActivate(_:)),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil
+        )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(workspaceApplicationDidLaunch(_:)),
+            name: NSWorkspace.didLaunchApplicationNotification,
+            object: nil
+        )
         debugLog("Touch Bar 지원 여부: 공개 API 사용 가능, 실제 표시는 Touch Bar 하드웨어와 활성 앱 상태에 따름")
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
         touchBarController?.removeFromControlStrip()
         viewModel?.stop()
     }
@@ -72,12 +85,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         debugLog("앱 활성화")
         touchBarController?.refresh()
         attachTouchBarToVisibleWindows()
+        touchBarController?.showInControlStrip()
     }
 
     @objc private func windowDidBecomeKey(_ notification: Notification) {
         guard let window = notification.object as? NSWindow else { return }
         attachTouchBar(to: window)
         touchBarController?.refresh()
+        touchBarController?.showInControlStrip()
+    }
+
+    @objc private func workspaceApplicationDidActivate(_ notification: Notification) {
+        guard activatedApplicationBundleIdentifier(from: notification) == "com.apple.Music" else { return }
+        debugLog("Apple Music 활성화 감지")
+        refreshTouchBarControlStripSoon()
+    }
+
+    @objc private func workspaceApplicationDidLaunch(_ notification: Notification) {
+        guard activatedApplicationBundleIdentifier(from: notification) == "com.apple.Music" else { return }
+        debugLog("Apple Music 실행 감지")
+        refreshTouchBarControlStripSoon()
     }
 
     private func attachTouchBarToVisibleWindows() {
@@ -89,6 +116,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func attachTouchBar(to window: NSWindow) {
         guard let touchBarController else { return }
         window.touchBar = touchBarController.touchBar
+    }
+
+    private func refreshTouchBarControlStripSoon() {
+        touchBarController?.refresh()
+        touchBarController?.showInControlStrip()
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            self.touchBarController?.refresh()
+            self.touchBarController?.showInControlStrip()
+        }
+    }
+
+    private func activatedApplicationBundleIdentifier(from notification: Notification) -> String? {
+        (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
     }
 
     private func debugLog(_ message: String) {

@@ -190,7 +190,6 @@ private final class TouchBarSystemTrayPresenter {
     }
 
     func show(_ item: NSTouchBarItem) {
-        guard !isInControlStrip else { return }
         setCloseBoxWhenFrontMost?(false)
         callTouchBarItemClassMethod("addSystemTrayItem:", item: item)
         setControlStripPresence?(item.identifier.rawValue as NSString, true)
