@@ -113,9 +113,8 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         .store(in: &cancellables)
 
         viewModel.$touchBarFontWeight
-            .combineLatest(viewModel.$touchBarFontSize)
             .receive(on: RunLoop.main)
-            .sink { [weak self, weak viewModel] _, _ in
+            .sink { [weak self, weak viewModel] _ in
                 guard let self, let viewModel else { return }
                 self.applyFont(from: viewModel)
             }
@@ -152,7 +151,7 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
 
     private func applyFont(from viewModel: LyricBarViewModel) {
         currentButton.font = .systemFont(
-            ofSize: CGFloat(viewModel.touchBarFontSize),
+            ofSize: 18,
             weight: viewModel.touchBarFontWeight.nsFontWeight
         )
     }

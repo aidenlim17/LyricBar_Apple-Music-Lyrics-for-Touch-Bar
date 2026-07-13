@@ -177,14 +177,6 @@ struct ContentView: View {
                 .labelsHidden()
                 .frame(width: 118)
 
-                Slider(value: $viewModel.touchBarFontSize, in: 14...22, step: 1)
-                    .frame(width: 130)
-
-                Text("\(Int(viewModel.touchBarFontSize))pt")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 36, alignment: .trailing)
-
                 Spacer()
             }
             .font(.caption)
