@@ -19,6 +19,9 @@ final class LyricBarViewModel: ObservableObject {
     @Published private(set) var selectedLRCLIBText = ""
     @Published private(set) var appleMusicDebugText = ""
     @Published private(set) var appleMusicAutomationDebugText = ""
+    @Published private(set) var updateStatusText = ""
+    @Published private(set) var isCheckingForUpdates = false
+    @Published private(set) var pendingUpdate: UpdateInfo?
     @Published private(set) var progress: Double = 0
     @Published private(set) var isLoadingLyrics = false
     @Published private(set) var canImportLRC = false
@@ -41,6 +44,7 @@ final class LyricBarViewModel: ObservableObject {
     private let appleMusicService: AppleMusicService
     private let lrclibService: LRCLIBService
     private let netEaseLRCService: NetEaseLRCService
+    private let updateService: UpdateService
     private let cache: LyricsCache
     private var pollingTimer: Timer?
     private var searchTask: Task<Void, Never>?
@@ -64,11 +68,13 @@ final class LyricBarViewModel: ObservableObject {
         appleMusicService: AppleMusicService? = nil,
         lrclibService: LRCLIBService? = nil,
         netEaseLRCService: NetEaseLRCService? = nil,
+        updateService: UpdateService? = nil,
         cache: LyricsCache? = nil
     ) {
         self.appleMusicService = appleMusicService ?? AppleMusicService()
         self.lrclibService = lrclibService ?? LRCLIBService()
         self.netEaseLRCService = netEaseLRCService ?? NetEaseLRCService()
+        self.updateService = updateService ?? UpdateService()
         self.cache = cache ?? LyricsCache()
         self.lyricSyncOffsets = Self.loadLyricSyncOffsets()
         self.touchBarFontWeight = Self.loadTouchBarFontWeight()
@@ -160,6 +166,34 @@ final class LyricBarViewModel: ObservableObject {
         saveLyricSyncOffsets()
         updateLyricSyncOffsetText()
         refreshCurrentLyricAfterSyncChange()
+    }
+
+    func checkForUpdates() {
+        guard !isCheckingForUpdates else { return }
+
+        isCheckingForUpdates = true
+        updateStatusText = "업데이트 확인 중..."
+        pendingUpdate = nil
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await updateService.checkForUpdates(currentVersion: appVersion)
+                await MainActor.run {
+                    self.apply(updateCheckResult: result)
+                }
+            } catch {
+                await MainActor.run {
+                    self.isCheckingForUpdates = false
+                    self.updateStatusText = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func openPendingUpdate() {
+        guard let pendingUpdate else { return }
+        NSWorkspace.shared.open(pendingUpdate.downloadURL)
     }
 
     private func refresh() async {
@@ -541,6 +575,23 @@ final class LyricBarViewModel: ObservableObject {
 
     private func updateLyricSyncOffsetText() {
         lyricSyncOffsetText = String(format: "%+.1fs", currentLyricSyncOffset)
+    }
+
+    private func apply(updateCheckResult result: UpdateCheckResult) {
+        isCheckingForUpdates = false
+
+        switch result {
+        case .upToDate(let currentVersion):
+            pendingUpdate = nil
+            updateStatusText = "최신 버전입니다. \(currentVersion)"
+        case .updateAvailable(let update):
+            pendingUpdate = update
+            updateStatusText = "새 버전 \(update.latestVersion)을 사용할 수 있습니다."
+        }
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
     }
 
     private func saveLyricSyncOffsets() {

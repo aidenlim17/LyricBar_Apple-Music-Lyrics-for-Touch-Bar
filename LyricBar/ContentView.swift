@@ -17,7 +17,7 @@ struct ContentView: View {
             footer
         }
         .padding(24)
-        .frame(minWidth: 620, idealWidth: 760, minHeight: 470)
+        .frame(minWidth: 620, idealWidth: 760, minHeight: 500)
         .background(.background)
         .onAppear {
             viewModel.start()
@@ -164,6 +164,33 @@ struct ContentView: View {
                     .toggleStyle(.switch)
                     .controlSize(.small)
             }
+
+            HStack(spacing: 8) {
+                Button {
+                    viewModel.checkForUpdates()
+                } label: {
+                    Label("업데이트 확인", systemImage: "arrow.down.circle")
+                }
+                .disabled(viewModel.isCheckingForUpdates)
+
+                if let pendingUpdate = viewModel.pendingUpdate {
+                    Button {
+                        viewModel.openPendingUpdate()
+                    } label: {
+                        Label("\(pendingUpdate.latestVersion) 다운로드", systemImage: "safari")
+                    }
+                }
+
+                if !viewModel.updateStatusText.isEmpty {
+                    Text(viewModel.updateStatusText)
+                        .foregroundStyle(viewModel.pendingUpdate == nil ? Color.secondary : Color.accentColor)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .font(.caption)
+            .buttonStyle(.borderless)
 
             HStack(spacing: 10) {
                 Label("Touch Bar 폰트", systemImage: "textformat.size")
